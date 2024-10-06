@@ -1,0 +1,100 @@
+<html>
+    <head>
+        <script type="text/javascript" src="velocity.min.js"></script>
+
+        <style type="text/css">
+            .text {
+                display: inline-block;
+                font-size: 40px;
+                white-space: nowrap;
+            }
+
+            .texts-container {
+                position: relative;
+                padding-top: 50px;
+                padding-bottom:50px;
+            }
+
+            .text-wrapper {
+                position: absolute;
+                width: 100%;
+                text-align: center;
+            }
+
+        </style>
+    </head>
+    <body>
+        <div class="texts-container">
+            <div class="text-wrapper"><span class="text">Hello world</span></div>
+            <div class="text-wrapper"><span class="text">This is some text</span></div>
+            <div class="text-wrapper"><span class="text">Lorem ipsum dolor sit amet</span></div>
+            <div class="text-wrapper"><span class="text">This is another text</span></div>
+            <div class="text-wrapper"><span class="text">A B C D E F G H I</span></div>
+            <div class="text-wrapper"><span class="text">A C E G I</span></div>
+            <div class="text-wrapper"><span class="text">Vineri, 16.06.2017</span></div>
+            <div class="text-wrapper"><span class="text">Let's see how this works</span></div>
+            <div class="text-wrapper"><span class="text">Hello there!</span></div>
+            <div class="text-wrapper"><span class="text">What do you think?</span></div>
+        </div>
+        <div id="options-container">
+        </div>
+    </body>
+
+    <script>
+        var elements = document.getElementsByClassName("text");
+        var optionsContainer = document.getElementById("options-container");
+        var currentIndex = 0;
+        var transitionTime = 1000;
+
+        for (let i = 0; i < elements.length; i++) {
+            let element = elements[i];
+            element.initialWidth = element.clientWidth;
+            element.index = i;
+            createOption(element);
+            hideElement(element);
+            calculateFactor(element);
+        }
+
+        elements[0].style.opacity = 1;
+        document.getElementsByTagName("input")[0].checked = true;
+
+        function createOption(el) {
+            let option = document.createElement("div");
+            let inputAndLabel = "<label><input type='radio' name='text' onchange='onChange("+el.index+")' />" + el.innerText + "</label>";
+            option.innerHTML = inputAndLabel;
+            optionsContainer.appendChild(option);
+        }
+
+        function hideElement(el) {
+            el.style.opacity = 0;
+        }
+
+        function calculateFactor(el) {
+            el.style.letterSpacing = "1px";
+            el.factor = el.clientWidth - el.initialWidth;
+            el.style.letterSpacing = "0px";
+        }
+
+        function onChange(index) {
+            if (index == currentIndex)
+                return;
+
+                let fromElement = elements[currentIndex];
+                let toElement = elements[index];
+
+                currentIndex = index;
+
+                let fromElementStartLetterSpacing = 0;
+                let fromElementEndLetterSpacing = (toElement.initialWidth - fromElement.initialWidth) / fromElement.factor;
+                let toElementStartLetterSpacing = (fromElement.initialWidth - toElement.initialWidth) / 2 / toElement.factor;
+                let toElementEndLetterSpacing = 0;
+
+                
+                //toElement.style.letterSpacing = "0px";
+                toElement.style.letterSpacing = toElementStartLetterSpacing + "px";
+
+                Velocity(fromElement, {letterSpacing: fromElementEndLetterSpacing, opacity: 0.0}, transitionTime , "easeOutSine");
+                Velocity(toElement, { letterSpacing: toElementEndLetterSpacing, opacity: 1.0}, transitionTime, "easeOutSine");
+        }
+    </script>
+</html>

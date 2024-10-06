@@ -1,208 +1,36 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" href="/favicon.png" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		
+		<link rel="modulepreload" href="/_app/immutable/entry/start.UoeMBK0f.js">
+		<link rel="modulepreload" href="/_app/immutable/chunks/entry.2NA6GCTa.js">
+		<link rel="modulepreload" href="/_app/immutable/chunks/runtime.PO3wmUQU.js">
+		<link rel="modulepreload" href="/_app/immutable/entry/app.DX7P3QlE.js">
+		<link rel="modulepreload" href="/_app/immutable/chunks/render.CVnnFLue.js">
+		<link rel="modulepreload" href="/_app/immutable/chunks/disclose-version.tMmlnwqS.js">
+		<link rel="modulepreload" href="/_app/immutable/chunks/if.BbmL4oHN.js">
+	</head>
+	<body data-sveltekit-preload-data="hover">
+		<div style="display: contents">
+			<script>
+				{
+					__sveltekit_b97swr = {
+						base: ""
+					};
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BlurHash Encoder</title>
+					const element = document.currentScript.parentElement;
 
-    <!-- Google Tag Manager -->
-    <script src="../scripts/analytics.js"></script>
-
-    <script src="blurhash.min.js"></script>
-    <script src="https://unpkg.com/mustache@latest"></script>
-
-    <script id="item-template" type="x-tmpl-mustache">
-        <div class="item">
-            <div class="thumbnail image-thumbnail">
-            </div>
-            <div class="spacer"></div>
-            <div class="thumbnail blurhash-thumbnail">
-            </div>
-            <div class="spacer"></div>
-            <div class="info">
-                <div>
-                    BlurHash: <input class="blurhash" type="text" value='{{blurHash}}' readonly>
-                    <button onclick="copyToClipboard('{{blurHash}}')">⧉</button>
-                </div>
-                <div class="truncate">
-                    <a href="{{imageUrl}}" target="_blank">{{imageUrl}}</a>
-                </div>
-                <div class="truncate">
-                    Encode date: {{startDate}}
-                </div>
-                <div class="truncate">
-                    Encode duration: {{durationInMs}} ms
-                </div>
-            
-            </div>
-        </div>
-    </script>
-
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 1em;
-        }
-
-        .item {
-            padding-top: 0.5em;
-            padding-bottom: 0.5em;
-            display: flex;
-        }
-
-        .thumbnail {
-            width: 128px;
-            height: 128px;
-            flex-shrink: 0;
-            display: flex;
-            justify-content: center;
-            box-shadow: 0px 2px 16px lightgrey;
-        }
-
-        .thumbnail img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-        }
-
-        .spacer {
-            width: 16px;
-            flex-shrink: 0;
-        }
-
-        .info {
-            flex-grow: 1;
-            min-width: 240px;
-        }
-
-        .truncate {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .blurhash {
-            font-family: monospace;
-            width: 40ch;
-        }
-    </style>
-</head>
-
-<body>
-    <!-- Google Tag Manager (noscript) -->
-    <noscript>
-        <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-W9ZLXHD6" height="0" width="0"
-            style="display:none;visibility:hidden">
-        </iframe>
-    </noscript>
-    <!-- End Google Tag Manager (noscript) -->
-
-    <h1>BlurHash Encoder (WIP)</h1>
-
-    <div>
-        <label for="image-url">Image URL:</label>
-        <input type="text" id="image-url" placeholder="Enter image URL"
-            value="https://images.pexels.com/photos/2486168/pexels-photo-2486168.jpeg"
-            onkeydown="if (event.key === 'Enter') encode()">
-    </div>
-
-    <div id="items">
-
-    </div>
-
-
-    <script>
-        const itemTemplate = document.getElementById('item-template').innerHTML;
-        const items = document.getElementById('items');
-        const input = document.getElementById('image-url');
-
-        async function encode() {
-            const imageUrl = input.value;
-            const corsProxyImageUrl = `https://corsproxy.io/?${encodeURIComponent(imageUrl)}`;
-
-            if (!imageUrl) {
-                alert('Please enter an image URL');
-                return;
-            }
-
-            input.value = '';
-
-            const startDate = new Date();
-
-            let useCorsProxy = false;
-            const image = new Image();
-            image.crossOrigin = 'Anonymous';
-            image.src = imageUrl;
-
-            image.onload = async () => {
-                image.onload = null;
-
-                const maxDimension = 64;
-                let width = image.width;
-                let height = image.height;
-
-                if (width > height) {
-                    if (width > maxDimension) {
-                        height = Math.round((height * maxDimension) / width);
-                        width = maxDimension;
-                    }
-                } else {
-                    if (height > maxDimension) {
-                        width = Math.round((width * maxDimension) / height);
-                        height = maxDimension;
-                    }
-                }
-
-                const canvas = document.createElement('canvas');
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(image, 0, 0, image.width, image.height, 0, 0, width, height);
-
-                const imageData = ctx.getImageData(0, 0, width, height);
-
-                const blurHash = await blurhash.encodePromise(imageData.data, imageData.width, imageData.height, 4, 4);
-                const blurHashImageData = await blurhash.decode(blurHash, width, height, 1.0);
-                const blurHashImage = await blurhash.getImageDataAsImageWithOnloadPromise(blurHashImageData, width, height);
-
-                const endDate = new Date();
-                const durationInMs = endDate - startDate;
-
-                const itemData = {
-                    blurHash,
-                    imageUrl,
-                    startDate,
-                    endDate,
-                    durationInMs,
-                };
-
-                const itemHTML = Mustache.render(itemTemplate, itemData);
-                var template = document.createElement('template');
-                template.innerHTML = itemHTML;
-                const item = template.content;
-                item.querySelector('.thumbnail.image-thumbnail').appendChild(image);
-                item.querySelector('.thumbnail.blurhash-thumbnail').appendChild(blurHashImage);
-                items.prepend(item);
-            };
-
-            image.onerror = (e) => {
-                if (!useCorsProxy) {
-                    useCorsProxy = true;
-                    image.src = corsProxyImageUrl;
-                }
-            };
-        }
-
-        async function copyToClipboard(text) {
-            try {
-                await navigator.clipboard.writeText(text);
-                console.log('Text copied to clipboard');
-            } catch (err) {
-                console.error('Failed to copy text: ', err);
-            }
-        }
-    </script>
-</body>
-
+					Promise.all([
+						import("/_app/immutable/entry/start.UoeMBK0f.js"),
+						import("/_app/immutable/entry/app.DX7P3QlE.js")
+					]).then(([kit, app]) => {
+						kit.start(app, element);
+					});
+				}
+			</script>
+		</div>
+	</body>
 </html>
